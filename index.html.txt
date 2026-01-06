@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Premium Stars Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body {
+            margin: 0; background-color: #000; color: #fff;
+            font-family: -apple-system, system-ui, sans-serif;
+            overflow: hidden; height: 100vh;
+        }
+        #snow { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 0; }
+        
+        .container {
+            position: relative; z-index: 1; padding: 20px;
+            display: flex; flex-direction: column; height: 100%;
+        }
+
+        /* Профиль как в видео */
+        .profile-card {
+            display: flex; flex-direction: column; align-items: center;
+            margin-bottom: 30px; animation: fadeIn 0.8s ease;
+        }
+        .avatar-wrapper {
+            position: relative; width: 85px; height: 85px;
+            border-radius: 50%; padding: 3px;
+            background: linear-gradient(45deg, #34c759, #2af598);
+            margin-bottom: 10px;
+        }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #222; }
+        .username { font-size: 18px; font-weight: 700; }
+        .level-badge {
+            background: #34c759; color: #000; padding: 2px 12px;
+            border-radius: 12px; font-size: 12px; font-weight: 800; margin-top: 5px;
+        }
+
+        /* Сетка товаров */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .item-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            border-radius: 16px; padding: 20px;
+            text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.1s;
+        }
+        .item-card:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.12); }
+        .item-card.selected { border-color: #34c759; background: rgba(52, 199, 89, 0.15); }
+        
+        .stars-count { font-size: 22px; font-weight: 800; display: block; }
+        .price-tag { font-size: 13px; color: #888; margin-top: 4px; display: block; }
+
+        /* Калькулятор */
+        .calc-box {
+            margin-top: 15px; background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px; padding: 15px; display: flex; align-items: center;
+        }
+        .calc-box input {
+            background: transparent; border: none; color: #fff;
+            font-size: 16px; width: 100%; outline: none;
+        }
+        .calc-res { color: #34c759; font-weight: 700; white-space: nowrap; }
+
+        /* Кнопка Оплатить */
+        .pay-button {
+            margin-top: auto; background: #34c759; color: #fff;
+            border: none; border-radius: 18px; padding: 18px;
+            font-size: 17px; font-weight: 700; width: 100%;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+    <canvas id="snow"></canvas>
+    <div class="container">
+        <div class="profile-card">
+            <div class="avatar-wrapper"><img id="avatar" src="" class="avatar"></div>
+            <span id="name" class="username">Loading...</span>
+            <div class="level-badge">2 УРОВЕНЬ ⚡️</div>
+        </div>
+
+        <div class="grid">
+            <div class="item-card" onclick="select(100, 160, this)">
+                <span class="stars-count">100 ⭐</span>
+                <span class="price-tag">160 ₽</span>
+            </div>
+            <div class="item-card" onclick="select(250, 400, this)">
+                <span class="stars-count">250 ⭐</span>
+                <span class="price-tag">400 ₽</span>
+            </div>
+            <div class="item-card" onclick="select(500, 800, this)">
+                <span class="stars-count">500 ⭐</span>
+                <span class="price-tag">800 ₽</span>
+            </div>
+            <div class="item-card" onclick="select(1000, 1600, this)">
+                <span class="stars-count">1000 ⭐</span>
+                <span class="price-tag">1600 ₽</span>
+            </div>
+        </div>
+
+        <div class="calc-box">
+            <input type="number" id="inp" placeholder="Введите количество звезд..." oninput="calc()">
+            <span class="calc-res" id="res">0 ₽</span>
+        </div>
+
+        <button class="pay-button" onclick="buy()">ОПЛАТИТЬ</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        const user = tg.initDataUnsafe.user || { first_name: 'Пользователь', photo_url: '' };
+        document.getElementById('name').innerText = user.first_name;
+        document.getElementById('avatar').src = user.photo_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+        let selData = null;
+
+        function select(v, p, el) {
+            document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selData = { val: v + ' Stars', price: p };
+        }
+
+        function calc() {
+            const v = document.getElementById('inp').value;
+            const p = Math.ceil(v * 1.6);
+            document.getElementById('res').innerText = p + ' ₽';
+            if(v > 0) selData = { val: v + ' Stars', price: p };
+        }
+
+        function buy() {
+            if(!selData) return tg.showAlert("Выберите количество!");
+            tg.sendData(JSON.stringify(selData));
+        }
+
+        // Анимация снега как в видео
+        const canvas = document.getElementById('snow');
+        const ctx = canvas.getContext('2d');
+        let w, h, particles = [];
+
+        function init() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            particles = Array.from({length: 50}, () => ({
+                x: Math.random() * w, y: Math.random() * h,
+                r: Math.random() * 2 + 1, d: Math.random() * 0.5 + 0.2
+            }));
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,w,h);
+            ctx.fillStyle = "rgba(255,255,255,0.7)";
+            ctx.beginPath();
+            particles.forEach(p => {
+                ctx.moveTo(p.x, p.y);
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                p.y += p.d;
+                if(p.y > h) p.y = -10;
+            });
+            ctx.fill();
+            requestAnimationFrame(draw);
+        }
+        window.onresize = init;
+        init(); draw();
+    </script>
+</body>
+</html>
