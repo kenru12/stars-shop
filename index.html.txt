@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stars Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-pure: #000000;
+            --bg-card: #1c1c1e; /* Чуть светлее для карточек, как на скрине */
+            --tg-button: #2481cc;
+            --tg-hint: #888888;
+        }
+
+        body {
+            margin: 0; background-color: var(--bg-pure); color: #fff;
+            font-family: -apple-system, system-ui, sans-serif;
+            overflow: hidden; height: 100vh;
+        }
+
+        canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 0; opacity: 0.8; }
+        
+        .app { position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column; }
+        .content { flex: 1; overflow-y: auto; padding: 16px; padding-top: 60px; padding-bottom: 120px; }
+
+        /* БАНЕР */
+        .promo-banner {
+            background: linear-gradient(135deg, #1d2733 0%, #2481cc 100%);
+            border-radius: 16px; padding: 20px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        /* ИНПУТ ГРУППА */
+        .input-group { 
+            background: var(--bg-card); border-radius: 14px; 
+            padding: 4px 12px; margin-bottom: 12px; 
+            display: flex; align-items: center; min-height: 56px;
+        }
+        
+        .avatar-slot { 
+            width: 0; height: 34px; border-radius: 50%; 
+            overflow: hidden; margin-right: 0; 
+            opacity: 0; transform: scale(0.5);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .avatar-slot.visible { width: 34px; margin-right: 12px; opacity: 1; transform: scale(1); }
+        .avatar-slot img { width: 100%; height: 100%; object-fit: cover; }
+
+        input { flex: 1; background: transparent; border: none; color: #fff; font-size: 16px; outline: none; }
+        .btn-self { background: var(--tg-button); color: #fff; border: none; border-radius: 18px; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+
+        /* СТИЛЬ КНОПОК ПАКЕТОВ (КАК НА СКРИНШОТЕ) */
+        .stars-grid { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 10px; 
+            margin: 16px 0;
+            padding-bottom: 5px;
+        }
+        /* Убираем скроллбар для красоты */
+        .stars-grid::-webkit-scrollbar { display: none; }
+
+        .star-card { 
+            background: var(--bg-card); 
+            border-radius: 12px; 
+            padding: 10px 16px; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px;
+            white-space: nowrap;
+            border: 1.5px solid transparent;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .star-card.active { 
+            border-color: #f9d43d; /* Золотая рамка при выборе */
+            background: rgba(249, 212, 61, 0.1);
+        }
+        .star-card b { color: #f9d43d; font-size: 15px; }
+        .star-card span { display: none; } /* Скрываем цену внутри кнопки как на скрине */
+
+        /* ОПЛАТА */
+        .label-txt { color: var(--tg-hint); font-size: 14px; margin: 15px 0 10px; display: block; font-weight: 500; }
+        .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .pay-item { background: var(--bg-card); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid transparent; font-weight: 600; }
+        .pay-item.active { border-color: var(--tg-button); background: rgba(36, 129, 204, 0.1); }
+
+        .main-btn { background: var(--tg-button); color: #fff; width: 100%; border: none; border-radius: 14px; padding: 18px; font-size: 16px; font-weight: 700; margin-top: 10px; }
+
+        /* НАВИГАЦИЯ */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,0.98); display: flex; padding: 12px 0 24px; border-top: 1px solid #222; }
+        .nav-item { flex: 1; text-align: center; background: none; border: none; color: #555; font-size: 12px; }
+        .nav-item.active { color: var(--tg-button); }
+        .tab { display: none; }
+        .tab.active { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="stars"></canvas>
+    <div class="app">
+        <div class="content">
+            <div id="shop-tab" class="tab active">
+                <div class="promo-banner">
+                    <div style="color:white"><b>Telegram Stars</b><br><span style="font-size:12px;opacity:0.8">Мгновенная отправка</span></div>
+                    <div style="font-size:30px">⭐</div>
+                </div>
+                
+                <div class="input-group">
+                    <div id="avatar-container" class="avatar-slot"><img id="dynamic-ava" src=""></div>
+                    <input type="text" id="target-user" placeholder="@username" oninput="resolveUser()">
+                    <button class="btn-self" onclick="setToMe()">Себе</button>
+                </div>
+
+                <div class="input-group">
+                    <input type="number" id="manual-count" placeholder="Введите количество звёзд" oninput="updatePriceManual()">
+                </div>
+
+                <div class="stars-grid">
+                    <div class="star-card" onclick="selectPack(100, this)"><b>100 ★</b></div>
+                    <div class="star-card" onclick="selectPack(250, this)"><b>250 ★</b></div>
+                    <div class="star-card" onclick="selectPack(500, this)"><b>500 ★</b></div>
+                    <div class="star-card" onclick="selectPack(1000, this)"><b>1000 ★</b></div>
+                    <div class="star-card" onclick="selectPack(5000, this)"><b>5000 ★</b></div>
+                </div>
+
+                <span class="label-txt">Оплата</span>
+                <div class="pay-grid">
+                    <div class="pay-item active" onclick="selectPay('sbp', this)">СБП</div>
+                    <div class="pay-item" onclick="selectPay('card', this)">Карты (RUB)</div>
+                </div>
+
+                <button class="main-btn" id="pay-button" onclick="handleBuy()">Купить</button>
+            </div>
+
+            <div id="profile-tab" class="tab">
+                <div style="background: var(--bg-card); border-radius: 16px; padding: 20px; text-align: center; margin-top: 40px;">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: #222; margin: 0 auto 12px; overflow: hidden; border: 2px solid var(--tg-button);">
+                        <img id="my-photo" src="" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <b id="my-name">...</b>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <button class="nav-item active" onclick="switchTab('shop-tab', this)"><div>🏠</div>Магазин</button>
+            <button class="nav-item" onclick="switchTab('profile-tab', this)"><div>👤</div>Профиль</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.headerColor = '#000000'; 
+        
+        const API_URL = "http://ТВОЙ_IP_АДРЕСА:8080"; 
+        const me = tg.initDataUnsafe.user || { username: '', photo_url: '' };
+        const RATE = 1.54;
+        let currentPayMethod = 'sbp';
+
+        document.getElementById('my-name').innerText = me.first_name || 'User';
+        if(me.photo_url) document.getElementById('my-photo').src = me.photo_url;
+
+        let searchTimer;
+        async function resolveUser() {
+            const input = document.getElementById('target-user').value.replace('@', '').trim();
+            const slot = document.getElementById('avatar-container');
+            const img = document.getElementById('dynamic-ava');
+            if(input.length < 3) { slot.classList.remove('visible'); return; }
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(async () => {
+                if(input === me.username && me.photo_url) {
+                    img.src = me.photo_url;
+                    slot.classList.add('visible');
+                } else {
+                    try {
+                        const response = await fetch(`${API_URL}/avatar/${input}`);
+                        const data = await response.json();
+                        img.src = data.found ? data.url : `https://ui-avatars.com/api/?name=${input}&background=2481cc&color=fff`;
+                    } catch (e) {
+                        img.src = `https://ui-avatars.com/api/?name=${input}&background=2481cc&color=fff`;
+                    }
+                    slot.classList.add('visible');
+                }
+            }, 500);
+        }
+
+        function setToMe() { document.getElementById('target-user').value = me.username; resolveUser(); }
+        
+        function selectPack(val, el) {
+            document.querySelectorAll('.star-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('manual-count').value = val;
+            updatePriceBtn(val);
+        }
+
+        function updatePriceManual() {
+            document.querySelectorAll('.star-card').forEach(c => c.classList.remove('active'));
+            const val = document.getElementById('manual-count').value;
+            updatePriceBtn(val);
+        }
+
+        function updatePriceBtn(val) {
+            const btn = document.getElementById('pay-button');
+            btn.innerText = val > 0 ? `Купить за ${Math.ceil(val * RATE)} ₽` : 'Купить';
+        }
+
+        function selectPay(method, el) {
+            document.querySelectorAll('.pay-item').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentPayMethod = method;
+        }
+
+        function handleBuy() {
+            const v = document.getElementById('manual-count').value;
+            const to = document.getElementById('target-user').value;
+            if(!v || !to) return tg.showAlert("Заполните поля!");
+            tg.sendData(JSON.stringify({stars: v, to: to, method: currentPayMethod}));
+        }
+
+        function switchTab(id, el) { 
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); el.classList.add('active');
+        }
+
+        // КРАСИВЫЕ ЗВЕЗДЫ НА ФОНЕ
+        const canvas = document.getElementById('stars');
+        const ctx = canvas.getContext('2d');
+        let w, h, dots = [];
+        function init() {
+            w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
+            dots = Array.from({length: 100}, () => ({ 
+                x: Math.random()*w, y: Math.random()*h, 
+                r: Math.random()*2 + 0.5, 
+                s: Math.random()*0.6 + 0.2 
+            }));
+        }
+        function draw() {
+            ctx.clearRect(0,0,w,h); ctx.fillStyle = "#ffffff";
+            dots.forEach(d => {
+                ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI*2); ctx.fill();
+                d.y += d.s; if(d.y > h) d.y = -5;
+            });
+            requestAnimationFrame(draw);
+        }
+        init(); draw(); window.onresize = init;
+    </script>
+</body>
+</html>
