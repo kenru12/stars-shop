@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stars Shop</title>
-    <meta name="lava-verify" content="23494cd30d3dd2bd" />
+    <meta name="lava-verify" content="f389759e88f5fccb" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -164,17 +164,13 @@
         <div class="content">
             
             <div id="tab-shop" class="tab active">
-               <div style="display: flex; gap: 12px; margin-bottom: 20px; box-sizing: border-box; align-items: center;">
-    <div style="width: 130px; height: 130px; border-radius: 22px; overflow: hidden; background-color: #1a1a1a; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-        <img src="http://googleusercontent.com/image_collection/image_retrieval/2021835131778686502_0" 
-             style="width: 100%; height: 100%; object-fit: cover; display: block;">
-    </div>
-
-    <div style="flex-grow: 1; height: 130px; border-radius: 22px; background: linear-gradient(135deg, #007aff, #0051af); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;">
-        <span style="font-size: 36px; font-weight: 800; line-height: 1;">4%</span>
-        <span style="font-size: 14px; font-weight: 500; margin-top: 5px; opacity: 0.9;">Кешбэк</span>
-    </div>
-</div>
+                <div class="promo-banner">
+                    <div style="color:white">
+                        <b style="font-size: 18px;">Telegram Stars</b><br>
+                        <span style="font-size:12px; opacity:0.8; margin-top: 4px; display:block;">Мгновенное пополнение</span>
+                    </div>
+                    <div style="font-size:36px">⭐</div>
+                </div>
                 
                 <span class="label-txt">Получатель</span>
                 <div class="input-group">
@@ -287,15 +283,17 @@
 
    <div id="ofertaModal" class="modal">
     <div class="modal-content">
+        <span class="close-btn" onclick="closeRules()">&times;</span>
         <h1 style="color: #0088cc; font-size: 20px;">Публичная оферта и Политика</h1>
         <p><strong>Исполнитель:</strong> Самозанятый Киршин Егор Николаевич</p>
-        <p><strong>ИНН:</strong> [184306032860]</p>
+        <p><strong>ИНН:</strong> 184306032860</p>
         <p><strong>Адрес:</strong> 426000, РФ, г. Ижевск, ул. Проспект Калашникова, д. 11, корп. 3</p>
         <hr>
         <h3>1. Предмет соглашения</h3>
         <p>1.1. Исполнитель обязуется оказать услуги по пополнению виртуальных ценностей Telegram Stars, а Пользователь — оплатить их по указанной цене.</p>
         <h3>2. Порядок оказания услуг</h3>
         <p>2.1. Услуги предоставляются в цифровом виде. Моментом выполнения обязательств считается начисление валюты на аккаунт Пользователя.</p>
+        <p>2.2. Среднее время доставки составляет от 1 минуты до 1 часа.</p>
         <h3>3. Возврат средств</h3>
         <p>3.1. Цифровые товары надлежащего качества возврату не подлежат (ст. 26.1 Закона РФ «О защите прав потребителей»).</p>
         <p>3.2. Если услуга не оказана в течение 72 часов по вине Исполнителя, производится полный возврат средств по запросу в поддержку.</p>
@@ -305,9 +303,11 @@
         <p>2. Платежные данные обрабатываются на стороне LAVA и не сохраняются у нас.</p>
         <p>3. Мы не передаем ваши данные третьим лицам.</p>
         <p>4. Контакты: egorkirsin73@gmail.com | TG: @starducksup</p>
-        <button class="close-btn" onclick="document.getElementById('ofertaModal').style.display='none'">Понятно, закрыть</button>
+        <button class="main-btn" style="margin-top: 20px;" onclick="closeRules()">Понятно, закрыть</button>
     </div>
 </div>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
@@ -510,4 +510,3 @@
     </script>
 </body>
 </html>
-
