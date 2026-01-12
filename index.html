@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stars Shop — Пополнение Telegram Stars</title>
-    <meta name="lava-verify" content="f389759e88f5fccb" />
+    <title>Stars Shop</title>
+    <meta name="lava-verify" content="23494cd30d3dd2bd" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -26,288 +26,97 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Анимированный фон со звездами */
+        /* Фон со звездами */
         canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.6;
+            position: fixed; top: 0; left: 0; pointer-events: none; z-index: 0; opacity: 0.6;
         }
 
         .app {
-            position: relative;
-            z-index: 1;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+            position: relative; z-index: 1; height: 100vh; display: flex; flex-direction: column;
         }
 
         .content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            padding-top: 20px;
-            padding-bottom: 110px; /* Отступ под навигацию */
+            flex: 1; overflow-y: auto; padding: 16px; padding-top: 20px; padding-bottom: 110px;
         }
-
-        /* Скрытие скроллбара для чистоты дизайна */
         .content::-webkit-scrollbar { display: none; }
 
-        /* Баннер на главной */
+        /* Баннер магазина */
         .promo-banner {
             background: linear-gradient(135deg, #1d2733 0%, #2481cc 100%);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            border-radius: 16px; padding: 20px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: space-between;
             box-shadow: 0 4px 15px rgba(36, 129, 204, 0.3);
         }
 
-        /* Поля ввода */
+        /* Элементы ввода */
         .label-txt {
-            color: var(--tg-hint);
-            font-size: 12px;
-            margin: 16px 0 8px 4px;
-            display: block;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+            color: var(--tg-hint); font-size: 12px; margin: 16px 0 8px 4px; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
         }
 
         .input-group {
-            background: var(--bg-card);
-            border-radius: 14px;
-            padding: 10px 14px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            min-height: 54px;
-            border: 1px solid #333;
-            transition: all 0.2s ease;
+            background: var(--bg-card); border-radius: 14px; padding: 10px 14px; margin-bottom: 12px;
+            display: flex; align-items: center; min-height: 54px; border: 1px solid #333; transition: all 0.2s ease;
         }
-
-        .input-group:focus-within {
-            border-color: var(--tg-button);
-            box-shadow: 0 0 0 1px var(--tg-button);
-        }
+        .input-group:focus-within { border-color: var(--tg-button); }
 
         .avatar-slot {
-            width: 0;
-            height: 34px;
-            border-radius: 50%;
-            overflow: hidden;
-            margin-right: 0;
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 0; height: 34px; border-radius: 50%; overflow: hidden; margin-right: 0; opacity: 0; transform: scale(0.5); transition: all 0.3s;
         }
-
-        .avatar-slot.visible {
-            width: 34px;
-            margin-right: 12px;
-            opacity: 1;
-            transform: scale(1);
-        }
-
+        .avatar-slot.visible { width: 34px; margin-right: 12px; opacity: 1; transform: scale(1); }
         .avatar-slot img { width: 100%; height: 100%; object-fit: cover; }
 
-        input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-        }
+        input { flex: 1; background: transparent; border: none; color: #fff; font-size: 16px; outline: none; }
 
-        /* Кнопки выбора количества */
-        .stars-grid {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            margin: 12px 0 20px;
-            padding: 4px;
-            scroll-behavior: smooth;
-        }
-
+        /* Сетка звезд */
+        .stars-grid { display: flex; overflow-x: auto; gap: 10px; margin: 12px 0 20px; padding: 4px; scroll-behavior: smooth; }
         .stars-grid::-webkit-scrollbar { display: none; }
 
         .star-card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-            border: 1.5px solid transparent;
-            transition: 0.2s;
-            flex-shrink: 0;
-            cursor: pointer;
+            background: var(--bg-card); border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 8px; white-space: nowrap;
+            border: 1.5px solid transparent; transition: 0.2s; flex-shrink: 0; cursor: pointer;
         }
-
-        .star-card.active {
-            border-color: #f9d43d;
-            background: rgba(249, 212, 61, 0.1);
-            transform: translateY(-2px);
-        }
-
+        .star-card.active { border-color: #f9d43d; background: rgba(249, 212, 61, 0.1); transform: translateY(-2px); }
         .star-card b { color: #f9d43d; font-size: 16px; }
 
-        /* Выбор оплаты */
+        /* Оплата */
         .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
         .pay-item {
-            background: var(--bg-card);
-            border-radius: 14px;
-            padding: 16px;
-            text-align: center;
-            border: 1.5px solid transparent;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            color: #fff;
+            background: var(--bg-card); border-radius: 14px; padding: 16px; text-align: center; border: 1.5px solid transparent; font-weight: 600; cursor: pointer; transition: 0.2s; color: #fff;
         }
+        .pay-item.active { border-color: var(--tg-button); background: rgba(36, 129, 204, 0.15); color: var(--tg-button); }
 
-        .pay-item.active {
-            border-color: var(--tg-button);
-            background: rgba(36, 129, 204, 0.15);
-            color: var(--tg-button);
-        }
-
-        /* Кнопки действий */
+        /* Кнопки */
         .main-btn {
-            background: var(--tg-button);
-            color: #ffffff;
-            width: 100%;
-            border: none;
-            border-radius: 14px;
-            padding: 18px;
-            font-size: 17px;
-            font-weight: 700;
-            margin-top: 8px;
-            cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s;
+            background: var(--tg-button); color: #ffffff; width: 100%; border: none; border-radius: 14px; padding: 18px; font-size: 17px; font-weight: 700; margin-top: 8px; cursor: pointer; transition: transform 0.1s;
         }
-
         .main-btn:active { transform: scale(0.97); }
-        .withdraw-btn { background: var(--success-green); margin-top: 16px; }
-
-        /* Блок реферальной системы с гифкой */
-        .ref-container {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            height: 140px;
-        }
-
-        .ref-gif-box {
-            width: 140px;
-            background: var(--bg-card);
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .ref-gif-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .ref-reward-box {
-            flex: 1;
-            background: var(--accent-gradient);
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
-        }
-
-        .ref-reward-box big { font-size: 36px; font-weight: 900; line-height: 1; }
-        .ref-reward-box span { font-size: 13px; font-weight: 600; opacity: 0.9; margin-top: 4px; }
+        .withdraw-btn { background: var(--success-green); margin-top: 24px; }
 
         /* Навигация */
         .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(10, 10, 10, 0.94);
-            display: flex;
-            padding: 10px 0 28px;
-            border-top: 1px solid #222;
-            z-index: 100;
-            backdrop-filter: blur(15px);
+            position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10, 10, 10, 0.94); display: flex; padding: 10px 0 28px; border-top: 1px solid #222; z-index: 100; backdrop-filter: blur(15px);
         }
-
-        .nav-item {
-            flex: 1;
-            text-align: center;
-            background: none;
-            border: none;
-            color: #555;
-            font-size: 11px;
-            padding: 0;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
+        .nav-item { flex: 1; text-align: center; background: none; border: none; color: #555; font-size: 11px; padding: 0; cursor: pointer; }
         .nav-item div { font-size: 24px; margin-bottom: 4px; }
         .nav-item.active { color: var(--tg-button); font-weight: 600; }
 
-        /* Модальные окна */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(10px);
-        }
-
-        .modal-content {
-            background: #1c1c1e;
-            margin: 8% auto;
-            padding: 24px;
-            border: 1px solid #333;
-            width: 88%;
-            border-radius: 24px;
-            max-height: 75vh;
-            overflow-y: auto;
-            color: #eee;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .close-btn {
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            color: #666;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .tab { display: none; animation: fadeIn 0.4s ease; }
+        /* Табы */
+        .tab { display: none; animation: fadeIn 0.3s ease; }
         .tab.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Модальное окно (Оферта) */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
         }
+        .modal-content {
+            background: #1c1c1e; margin: 5% auto; padding: 25px; border: 1px solid #333; width: 88%; border-radius: 24px;
+            max-height: 85vh; overflow-y: auto; color: #eee; font-size: 13px; line-height: 1.5;
+        }
+        .modal-content h2 { color: var(--tg-button); font-size: 18px; margin-top: 0; margin-bottom: 15px; text-align: center; }
+        .modal-content h3 { color: #fff; font-size: 15px; margin-top: 20px; margin-bottom: 10px; }
+        .modal-content p { margin-bottom: 10px; color: #ccc; text-align: justify; }
+        .close-btn { float: right; font-size: 28px; font-weight: bold; color: #666; cursor: pointer; line-height: 1; margin-top: -10px; }
     </style>
 </head>
 <body>
@@ -320,7 +129,7 @@
                 <div class="promo-banner">
                     <div>
                         <b style="font-size: 20px;">Пополнение Stars</b><br>
-                        <span style="font-size:13px; opacity:0.8;">Официальное зачисление по ID</span>
+                        <span style="font-size:13px; opacity:0.8;">Мгновенное зачисление</span>
                     </div>
                     <div style="font-size:40px">⭐</div>
                 </div>
@@ -329,10 +138,10 @@
                 <div class="input-group">
                     <div id="avatar-container" class="avatar-slot"><img id="dynamic-ava" src=""></div>
                     <input type="text" id="target-user" placeholder="@username" oninput="resolveUser()">
-                    <button class="btn-self" onclick="setToMe()" style="background: rgba(36,129,204,0.2); color: var(--tg-button); border:none; padding:6px 12px; border-radius:8px; font-weight:600;">Я</button>
+                    <button class="btn-self" onclick="setToMe()" style="background: rgba(36,129,204,0.2); color: var(--tg-button); border:none; padding:6px 12px; border-radius:8px; font-weight:600; cursor:pointer;">Я</button>
                 </div>
 
-                <span class="label-txt">Выберите пакет звезд</span>
+                <span class="label-txt">Количество</span>
                 <div class="stars-grid">
                     <div class="star-card" onclick="selectPack(50, this)"><b>50 ★</b></div>
                     <div class="star-card" onclick="selectPack(100, this)"><b>100 ★</b></div>
@@ -342,42 +151,35 @@
                     <div class="star-card" onclick="selectPack(2500, this)"><b>2500 ★</b></div>
                 </div>
 
-                <span class="label-txt">Или введите количество вручную</span>
+                <span class="label-txt">Или введите вручную</span>
                 <div class="input-group">
                     <input type="number" id="manual-count" placeholder="Минимум 50" oninput="updatePriceManual()">
                 </div>
 
                 <span class="label-txt">Метод оплаты</span>
                 <div class="pay-grid">
-                    <div class="pay-item active" onclick="selectPay('sbp', this)">СБП</div>
+                    <div class="pay-item active" onclick="selectPay('sbp', this)">СБП (Быстро)</div>
                     <div class="pay-item" onclick="selectPay('card', this)">Карта РФ</div>
                 </div>
 
                 <button class="main-btn" id="pay-button" onclick="handleBuy()">Купить за 400 ₽</button>
                 
-                <p style="text-align:center; font-size:11px; color:#666; margin-top:16px; padding: 0 10px;">
-                    Нажимая кнопку, вы соглашаетесь с 
-                    <a onclick="openModal('modalOferta')" style="color:var(--tg-button); text-decoration:underline; cursor:pointer;">офертой</a> 
-                    и 
-                    <a onclick="openModal('modalPrivacy')" style="color:var(--tg-button); text-decoration:underline; cursor:pointer;">политикой данных</a>.
+                <p style="text-align:center; font-size:11px; color:#666; margin-top:16px;">
+                    Нажимая кнопку, вы принимаете условия<br>
+                    <a onclick="openModal('modalOferta')" style="color:var(--tg-button); text-decoration:underline; cursor:pointer;">Публичной оферты и Соглашения</a>.
                 </p>
             </div>
 
             <div id="tab-ref" class="tab">
                 <h2 style="margin: 0 0 20px;">Партнерская программа</h2>
                 
-                <div class="ref-container">
-                    <div class="ref-gif-box">
-                        <img src="Utya Duck Telegram Stickers - egor zhgun.gif" alt="Utya Duck">
-                    </div>
-                    <div class="ref-reward-box">
-                        <big>4%</big>
-                        <span>Ваш Кешбэк</span>
-                    </div>
+                <div style="background: var(--bg-card); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #333; margin-bottom: 20px;">
+                    <div style="font-size: 42px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">4%</div>
+                    <div style="color: #888; font-size: 14px; margin-top: 5px;">Ваш доход с каждой покупки друга</div>
                 </div>
 
-                <span class="label-txt">Ваша пригласительная ссылка</span>
-                <div class="input-group" style="padding: 5px 14px;">
+                <span class="label-txt">Ваша ссылка</span>
+                <div class="input-group">
                     <input type="text" id="ref-link" readonly value="Загрузка...">
                     <button onclick="copyRef()" style="background:none; border:none; font-size:20px; cursor:pointer;">📋</button>
                 </div>
@@ -386,33 +188,27 @@
 
                 <div style="display: flex; justify-content: space-around; margin-top: 30px; text-align: center; border-top: 1px solid #333; padding-top: 20px;">
                     <div><span id="ref-count" style="display:block; font-size:24px; font-weight:bold;">0</span><small style="color:#666;">Друзей</small></div>
-                    <div><span id="ref-earnings" style="display:block; font-size:24px; font-weight:bold; color:var(--success-green);">0 ₽</span><small style="color:#666;">Заработано</small></div>
+                    <div><span id="ref-earnings" style="display:block; font-size:24px; font-weight:bold; color:var(--success-green);">0 ₽</span><small style="color:#666;">Баланс</small></div>
                 </div>
                 
-                <button class="main-btn withdraw-btn" onclick="requestWithdraw()">💸 Заказать выплату (от 100 ₽)</button>
+                <button class="main-btn withdraw-btn" onclick="requestWithdraw()">💸 Заказать выплату</button>
             </div>
 
             <div id="tab-sell" class="tab" style="text-align:center; padding-top:100px; color:#555;">
                 <div style="font-size:60px; margin-bottom:20px;">📉</div>
-                <h3>Скупка Stars временно недоступна</h3>
-                <p>Мы работаем над автоматизацией выплат.</p>
+                <h3>Скупка Stars</h3><p>Сервис в разработке.</p>
             </div>
 
             <div id="tab-check" class="tab" style="text-align:center; padding-top:50px;">
                 <h3>Проверка заказа</h3>
-                <div class="input-group" style="margin-top:20px;">
-                    <input type="text" placeholder="Введите номер заказа (#...)">
-                </div>
-                <button class="main-btn">Найти заказ</button>
+                <div class="input-group" style="margin-top:20px;"><input type="text" placeholder="#ORDER-12345"></div>
+                <button class="main-btn">Проверить</button>
             </div>
 
             <div id="tab-history" class="tab">
-                <h3 style="margin-bottom:20px;">История операций</h3>
-                <div style="background:var(--bg-card); padding:40px; border-radius:20px; text-align:center; color:#444; border:1px dashed #333;">
-                    История заказов пока пуста
-                </div>
+                <h3 style="margin-bottom:20px;">История покупок</h3>
+                <div style="background:var(--bg-card); padding:40px; border-radius:20px; text-align:center; color:#444; border:1px dashed #333;">Пусто</div>
             </div>
-
         </div>
 
         <div class="nav-bar">
@@ -427,24 +223,49 @@
     <div id="modalOferta" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('modalOferta')">&times;</span>
-            <h2 style="color:var(--tg-button);">Публичная оферта</h2>
-            <p><strong>Исполнитель:</strong> Самозанятый Киршин Егор Николаевич<br>
-            <strong>ИНН:</strong> 184306032860<br>
-            <strong>Контакты:</strong> egorkirsin73@gmail.com | @starducksup</p>
-            <p>1. Предмет соглашения: Исполнитель обязуется оказать услуги по пополнению виртуальных ценностей Telegram Stars, а Пользователь — оплатить их.<br>
-            2. Услуга считается оказанной в момент успешного зачисления валюты на указанный Пользователем ID.<br>
-            3. Возврат средств: Согласно ст. 26.1 Закона о защите прав потребителей РФ, цифровые товары надлежащего качества возврату не подлежат.<br>
-            4. Сроки: Доставка занимает от 1 до 60 минут, в редких случаях до 24 часов.</p>
-        </div>
-    </div>
+            <h2>ПУБЛИЧНАЯ ОФЕРТА И ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ СЕРВИСА</h2>
+            
+            <p>Настоящий документ является официальным предложением (публичной офертой) физического лица, применяющего специальный налоговый режим «Налог на профессиональный доход» (далее — «Исполнитель» или «Сервис»), адресованным любому физическому лицу (далее — «Пользователь»), заключить договор на изложенных ниже условиях.</p>
 
-    <div id="modalPrivacy" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('modalPrivacy')">&times;</span>
-            <h2 style="color:var(--tg-button);">Политика данных</h2>
-            <p>1. Какие данные мы собираем: Мы сохраняем ваш Telegram ID и Username исключительно для корректной доставки товара.<br>
-            2. Платежи: Мы не собираем и не храним данные ваших банковских карт. Все транзакции проходят на защищенной стороне платежного агрегатора LAVA.<br>
-            3. Безопасность: Мы не передаем информацию о ваших покупках третьим лицам.</p>
+            <h3>1. ОБЩИЕ ПОЛОЖЕНИЯ</h3>
+            <p>1.1. Настоящее Соглашение регулирует отношения между Пользователем и Сервисом по предоставлению услуг покупки и продажи цифровых товаров: Telegram Stars и Telegram Premium.</p>
+            <p>1.2. Совершение Пользователем действий, направленных на использование Сервиса (оформление заявки, оплата), считается безусловным принятием (акцептом) условий настоящего Соглашения.</p>
+            <p>1.3. Сервис оставляет за собой право вносить изменения в настоящее Соглашение без предварительного уведомления. Актуальная версия всегда доступна на официальном ресурсе Сервиса.</p>
+
+            <h3>2. ПРЕДМЕТ СОГЛАШЕНИЯ И УСЛОВИЯ ИСПОЛЬЗОВАНИЯ</h3>
+            <p>2.1. Услуги по покупке Telegram Stars/Premium предоставляются моментально или в кратчайшие сроки после успешной оплаты и соответствующего запроса со стороны Пользователя.</p>
+            <p>2.2. Пользователь обязуется использовать Сервис исключительно в рамках законодательства РФ и международного права, а также не предпринимать действий, которые могут нанести ущерб третьим лицам или репутации Сервиса.</p>
+            <p>2.3. Пользователь несет полную ответственность за корректность предоставленных данных (ID аккаунта, юзернейм и т.д.). Сервис не несет ответственности за неисполнение услуги, если Пользователем были указаны неверные данные.</p>
+            <p>2.4. Особые условия для продажи Stars (Вывод средств): В связи с техническими правилами платформы Telegram, выплата USDT за продажу Telegram Stars начисляется на аккаунт Пользователя по истечении 21 (двадцати одного) дня с момента транзакции. Администрация вправе произвести выплату раньше указанного срока по своему усмотрению, но не обязана этого делать.</p>
+            <p>2.5. Сервис не является официальным обменным пунктом Telegram. При операциях с Telegram Stars возможны дополнительные комиссии и технические задержки, связанные с работой платформы WalletStars.</p>
+
+            <h3>3. ПОРЯДОК ПРЕДОСТАВЛЕНИЯ УСЛУГ И ВОЗВРАТЫ</h3>
+            <p>3.1. Услуга покупки считается оказанной моментально после перевода цифровых товаров на аккаунт Пользователя.</p>
+            <p>3.2. После завершения транзакции услуга считается выполненной надлежащим образом. Возвраты средств (Chargeback) или корректировки после факта оказания услуги не предусмотрены, за исключением случаев технической ошибки на стороне Сервиса.</p>
+            <p>3.3. Гарантия возврата: В случае, если оплаченные звёзды (Stars) или Premium не были переданы на аккаунт Пользователя в течение 3-х (трех) суток по вине Сервиса, Сервис обязуется вернуть средства Пользователю в полном объеме в течение 7 (семи) дней по реквизитам, с которых была совершена оплата.</p>
+            <p>3.4. Возврат денежных средств возможен исключительно в случае технической невозможности оказания услуги по вине Сервиса.</p>
+
+            <h3>4. ПЛАТЕЖИ И БЕЗОПАСНОСТЬ</h3>
+            <p>4.1. Все платежи осуществляются через защищенные платежные агрегаторы и системы (в т.ч. Lava).</p>
+            <p>4.2. Сервис не хранит полные данные банковских карт Пользователя. Обработка платежных данных производится на стороне платежного шлюза.</p>
+            <p>4.3. Пользователь подтверждает, что является владельцем платежного средства, используемого для оплаты, и имеет право распоряжаться денежными средствами.</p>
+
+            <h3>5. ОТВЕТСТВЕННОСТЬ СТОРОН</h3>
+            <p>5.1. Сервис не несет ответственности за любые действия, санкции или ограничения, наложенные администрацией мессенджера Telegram на аккаунт Пользователя (включая баны, списания звезд и т.д.), возникшие в процессе или после использования услуг Сервиса.</p>
+            <p>5.2. Сервис гарантирует выполнение услуги только при условии корректности предоставленных Пользователем данных.</p>
+            <p>5.3. Сервис не несет ответственности за перебои в работе сторонних платежных систем или технические сбои на стороне платформы Telegram.</p>
+
+            <h3>6. КОНФИДЕНЦИАЛЬНОСТЬ</h3>
+            <p>6.1. Сервис обеспечивает конфиденциальность данных, предоставленных Пользователем, и использует их исключительно для выполнения заказа. Подробные условия описаны в Политике конфиденциальности.</p>
+
+            <h3>7. РЕКВИЗИТЫ ИСПОЛНИТЕЛЯ</h3>
+            <p><strong>Физическое лицо (Самозанятый / Плательщик НПД)</strong></p>
+            <p><strong>ФИО:</strong> Киршин Егор Николаевич</p>
+            <p><strong>ИНН:</strong> 183406032860</p>
+            <p><strong>Адрес для корреспонденции:</strong> РФ, г. Ижевск, ул. проспект Михаила Тимофеевича Калашникова, д. 11, корп. 3.</p>
+            <p><strong>Email для связи:</strong> kirshinegor21@gmail.com</p>
+
+            <button class="main-btn" onclick="closeModal('modalOferta')">Я принимаю условия</button>
         </div>
     </div>
 
@@ -456,13 +277,10 @@
         
         const me = tg.initDataUnsafe.user || { id: 0, first_name: 'Guest', username: 'guest' };
         
-        // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', () => {
-            if (me.id) {
-                document.getElementById('ref-link').value = `https://t.me/DuckStarsBot?start=${me.id}`;
-            }
+            if (me.id) document.getElementById('ref-link').value = `https://t.me/DuckStarsBot?start=${me.id}`;
             setToMe();
-            updatePriceBtn(250); // Дефолтная сумма
+            updatePriceBtn(250); 
         });
 
         function switchTab(id, el) { 
@@ -473,7 +291,6 @@
             el.classList.add('active');
         }
 
-        // Логика определения аватара
         function resolveUser() {
             const val = document.getElementById('target-user').value.trim().replace('@', '');
             const slot = document.getElementById('avatar-container');
@@ -539,11 +356,9 @@
             }));
         }
 
-        // Модальные окна
         function openModal(id) { document.getElementById(id).style.display = "block"; }
         function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
-        // Рефералка
         function copyRef() {
             const link = document.getElementById("ref-link");
             link.select();
@@ -556,40 +371,27 @@
             const url = `https://t.me/share/url?url=${encodeURIComponent(document.getElementById("ref-link").value)}&text=Покупай Telegram Stars здесь! Это надежно.`;
             tg.openTelegramLink(url);
         }
+        
+        function requestWithdraw() {
+             tg.HapticFeedback.impactOccurred('medium');
+             tg.showConfirm("Создать заявку на вывод средств?", (ok) => {
+                 if (ok) tg.sendData(JSON.stringify({ action: 'withdraw_request', user_id: me.id }));
+             });
+        }
 
-        // Анимация звездного фона
         const canvas = document.getElementById('stars');
         const ctx = canvas.getContext('2d');
         let w, h, stars = [];
-
         function initStars() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-            stars = Array.from({length: 70}, () => ({
-                x: Math.random() * w,
-                y: Math.random() * h,
-                r: Math.random() * 1.5 + 0.5,
-                d: Math.random() * 0.5 + 0.2
-            }));
+            w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight;
+            stars = Array.from({length: 60}, () => ({x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.5+0.5, d: Math.random()*0.5+0.1}));
         }
-
         function animate() {
-            ctx.clearRect(0,0,w,h);
-            ctx.fillStyle = "#fff";
-            stars.forEach(s => {
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-                ctx.fill();
-                s.y += s.d;
-                if(s.y > h) s.y = -10;
-            });
+            ctx.clearRect(0,0,w,h); ctx.fillStyle = "#fff";
+            stars.forEach(s => { ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill(); s.y += s.d; if(s.y > h) s.y = -5; });
             requestAnimationFrame(animate);
         }
-
-        window.addEventListener('resize', initStars);
-        initStars();
-        animate();
-
+        window.addEventListener('resize', initStars); initStars(); animate();
         tg.ready();
     </script>
 </body>
